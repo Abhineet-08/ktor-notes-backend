@@ -10,37 +10,16 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.net.URI
 
 object DatabaseFactory {
 
     fun init(config: ApplicationConfig) {
-        // Read all the database properties from the configuration file
-        val driverClassName = config.property("db.driver").getString()
+        // Read the main database URL from the configuration file
         val originalJdbcURL = config.property("db.url").getString()
-        val user = config.property("db.user").getString()
-        val password = config.property("db.password").getString()
 
-        // *** THIS IS THE FIX ***
-        // Only prepend "jdbc:" if the URL doesn't already have it.
-        // This handles both Render's URL (postgresql://...) and local URLs (jdbc:postgresql://...)
-        val correctedJdbcURL = if (originalJdbcURL.startsWith("jdbc:")) {
-            originalJdbcURL
-        } else {
-            "jdbc:${originalJdbcURL}"
-        }
-
-        // Configure Hikari with the corrected URL and other credentials
-        val hikariConfig = HikariConfig().apply {
-            this.driverClassName = driverClassName
-            this.jdbcUrl = correctedJdbcURL // Use the fixed URL
-            this.username = user
-            this.password = password
-            maximumPoolSize = 3
-            isAutoCommit = false
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-            validate()
-        }
-
+        // Configure Hikari with the appropriate credentials
+        val hikariConfig = createHikariConfig(originalJdbcURL)
         Database.connect(HikariDataSource(hikariConfig))
 
         // Create database tables
@@ -48,6 +27,38 @@ object DatabaseFactory {
             SchemaUtils.create(UserTable)
             SchemaUtils.create(NoteTable)
         }
+    }
+
+    private fun createHikariConfig(dbUrl: String): HikariConfig {
+        val config = HikariConfig()
+
+        // Check if we are using a local URL or a Render-style URL
+        if (dbUrl.startsWith("jdbc:postgresql://")) {
+            // It's a local URL, use it directly
+            config.jdbcUrl = dbUrl
+            // For local dev, we assume user/pass are in the URL or default config
+        } else {
+            // It's a Render-style URL (e.g., "postgresql://..."), parse it
+            val dbUri = URI(dbUrl)
+            val userInfo = dbUri.userInfo.split(":")
+            val username = userInfo[0]
+            val password = userInfo[1]
+            val host = dbUri.host
+            val port = dbUri.port
+            val path = dbUri.path
+
+            // Reconstruct the URL into the format the Java JDBC driver expects
+            config.jdbcUrl = "jdbc:postgresql://$host:$port$path"
+            config.username = username
+            config.password = password
+        }
+
+        config.driverClassName = "org.postgresql.Driver"
+        config.maximumPoolSize = 3
+        config.isAutoCommit = false
+        config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        config.validate()
+        return config
     }
 
     suspend fun <T> dbQuery(block: () -> T): T = withContext(Dispatchers.IO) {
