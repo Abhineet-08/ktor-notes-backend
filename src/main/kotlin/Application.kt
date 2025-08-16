@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     // 1. Initialize the database
-    DatabaseFactory.init()
+    DatabaseFactory.init(environment.config)
 
     // 2. Create your dependencies using the main application config
     val db = UserRepo()

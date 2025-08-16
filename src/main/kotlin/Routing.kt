@@ -13,18 +13,19 @@ import io.ktor.server.routing.*
 // In your configureRouting file
 
 fun Application.configureRouting(
-    db: UserRepo, // Accept UserRepo as a parameter
-    jwtService: JwtService // Accept JwtService as a parameter
+    db: UserRepo,
+    jwtService: JwtService
 ) {
     val hashFunction = { s: String -> hash(s) }
-    
-    routing {
-//        UserRoutes(db, jwtService, hashFunction)
-//        NoteRoutes(db, hashFunction)
 
+    routing {
+        // Temporarily disable these to find the conflict
+         UserRoutes(db, jwtService, hashFunction)
+         NoteRoutes(db, hashFunction)
+
+        // This should be the ONLY active route
         get("/") {
-            call.respondText("Hello World!")
+            call.respondText("Hello from the isolated root route!")
         }
-        // ... your other routes
     }
 }

@@ -1,14 +1,20 @@
 ktor:
+  # This section tells Ktor which function to run on startup.
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+
   deployment:
-    port: ${PORT} # Use the port Render provides
+    port: ${PORT:9696}
 
 jwt:
-  issuer: "https://your-app-name.onrender.com" # Use your actual Render URL
+  issuer: ${JWT_ISSUER:http://0.0.0.0:9696}
   audience: "users"
   realm: "ktor sample app"
-  secret: ${JWT_SECRET} # <-- CRITICAL: Read secret from environment
+  secret: ${JWT_SECRET:local-dev-secret}
 
 db:
-  url: ${DATABASE_URL} # <-- CRITICAL: Read database URL from environment
-  user: ${DB_USER}
-  password: ${DB_PASSWORD}
+  driver: org.postgresql.Driver
+  url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/notes_db}
+  user: ${DB_USER:ktor_user}
+  password: ${DB_PASSWORD:Kumar@1234}

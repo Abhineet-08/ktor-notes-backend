@@ -1,9 +1,11 @@
 package com.example.repository
 
+// ... your imports
 import com.example.data.table.NoteTable
 import com.example.data.table.UserTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.config.ApplicationConfig // <-- Add this import
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
@@ -12,8 +14,24 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
 
-    fun init() {
-        Database.connect(hikari())
+    fun init(config: ApplicationConfig) { // <-- Accept config as a parameter
+        val driverClassName = config.property("db.driver").getString()
+        val jdbcURL = config.property("db.url").getString()
+        val user = config.property("db.user").getString()
+        val password = config.property("db.password").getString()
+
+        val hikariConfig = HikariConfig().apply {
+            this.driverClassName = driverClassName
+            this.jdbcUrl = jdbcURL
+            this.username = user
+            this.password = password
+            maximumPoolSize = 3
+            isAutoCommit = false
+            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            validate()
+        }
+
+        Database.connect(HikariDataSource(hikariConfig))
 
         transaction {
             SchemaUtils.create(UserTable)
@@ -21,23 +39,7 @@ object DatabaseFactory {
         }
     }
 
-    fun hikari(): HikariDataSource {
-        val config = HikariConfig()
-        config.driverClassName = System.getenv("JDBC_DRIVER")
-        config.jdbcUrl = System.getenv("DATABASE_URL")
-        config.username = "ktor-user"
-        config.password = "Kumar@1234"
-        config.maximumPoolSize = 3
-        config.isAutoCommit = false
-        config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-        config.validate()
-        return HikariDataSource(config)
-
-    }
-
-    suspend fun <T> dbQuery(block: () -> T):
-            T = withContext(Dispatchers.IO) {
+    suspend fun <T> dbQuery(block: () -> T): T = withContext(Dispatchers.IO) {
         transaction { block() }
     }
-
 }
