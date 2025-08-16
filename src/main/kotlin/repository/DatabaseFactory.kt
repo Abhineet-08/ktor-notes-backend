@@ -21,8 +21,13 @@ object DatabaseFactory {
         val password = config.property("db.password").getString()
 
         // *** THIS IS THE FIX ***
-        // Prepend "jdbc:" to the URL provided by Render to make it compatible with the Java JDBC driver.
-        val correctedJdbcURL = "jdbc:${originalJdbcURL}"
+        // Only prepend "jdbc:" if the URL doesn't already have it.
+        // This handles both Render's URL (postgresql://...) and local URLs (jdbc:postgresql://...)
+        val correctedJdbcURL = if (originalJdbcURL.startsWith("jdbc:")) {
+            originalJdbcURL
+        } else {
+            "jdbc:${originalJdbcURL}"
+        }
 
         // Configure Hikari with the corrected URL and other credentials
         val hikariConfig = HikariConfig().apply {
