@@ -19,7 +19,7 @@ object DatabaseFactory {
         val originalJdbcURL = config.property("db.url").getString()
 
         // Configure Hikari with the appropriate credentials
-        val hikariConfig = createHikariConfig(originalJdbcURL)
+        val hikariConfig = createHikariConfig(originalJdbcURL, config)
         Database.connect(HikariDataSource(hikariConfig))
 
         // Create database tables
@@ -29,14 +29,15 @@ object DatabaseFactory {
         }
     }
 
-    private fun createHikariConfig(dbUrl: String): HikariConfig {
+    private fun createHikariConfig(dbUrl: String, appConfig: ApplicationConfig): HikariConfig {
         val config = HikariConfig()
 
         // Check if we are using a local URL or a Render-style URL
         if (dbUrl.startsWith("jdbc:postgresql://")) {
-            // It's a local URL, use it directly
+            // It's a local URL, use it directly and get credentials from config
             config.jdbcUrl = dbUrl
-            // For local dev, we assume user/pass are in the URL or default config
+            config.username = appConfig.property("db.user").getString()
+            config.password = appConfig.property("db.password").getString()
         } else {
             // It's a Render-style URL (e.g., "postgresql://..."), parse it
             val dbUri = URI(dbUrl)
@@ -44,7 +45,9 @@ object DatabaseFactory {
             val username = userInfo[0]
             val password = userInfo[1]
             val host = dbUri.host
-            val port = dbUri.port
+            // *** THIS IS THE FIX ***
+            // Use the default PostgreSQL port (5432) if the URL doesn't specify one
+            val port = if (dbUri.port == -1) 5432 else dbUri.port
             val path = dbUri.path
 
             // Reconstruct the URL into the format the Java JDBC driver expects
