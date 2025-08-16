@@ -22,4 +22,4 @@ RUN ./gradlew build --no-daemon
 EXPOSE 8080
 
 # Command to run the application when the container starts
-CMD ["java", "-jar", "build/libs/ktor-notes-backend-0.0.1-all.jar"]
+CMD ["java", "-jar", "build/libs/ktor-notes-backend-all.jar"]
