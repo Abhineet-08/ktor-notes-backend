@@ -17,13 +17,10 @@ fun Application.configureRouting(
     jwtService: JwtService // Accept JwtService as a parameter
 ) {
     val hashFunction = { s: String -> hash(s) }
-    // The function no longer creates its own dependencies
-    // val jwtService = JwtService() // DELETE
-    // val db = UserRepo() // DELETE
-
+    
     routing {
-        UserRoutes(db, jwtService, hashFunction)
-        NoteRoutes(db, hashFunction)
+//        UserRoutes(db, jwtService, hashFunction)
+//        NoteRoutes(db, hashFunction)
 
         get("/") {
             call.respondText("Hello World!")
