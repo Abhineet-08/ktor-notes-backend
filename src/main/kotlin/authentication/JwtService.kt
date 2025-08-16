@@ -4,11 +4,12 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.data.model.UserModel
+import io.ktor.server.config.ApplicationConfig
 
-class JwtService {
+class JwtService(config: ApplicationConfig) {
 
     private val issuer = "noteServer"
-    private val jwtSecret = System.getenv("JWT_SECRET")
+    private val jwtSecret = config.property("jwt.secret").getString()
     private val algorithm = Algorithm.HMAC512(jwtSecret)
     val verifier: JWTVerifier = JWT
         .require(algorithm)

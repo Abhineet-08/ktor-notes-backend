@@ -13,15 +13,20 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.module() {
+// In Application.kt
 
+fun Application.module() {
+    // 1. Initialize the database
     DatabaseFactory.init()
+
+    // 2. Create your dependencies using the main application config
     val db = UserRepo()
-    val jwtService = JwtService()
+    val jwtService = JwtService(environment.config) // Pass the application's config
     val hashFunction = { s: String -> hash(s) }
 
-    install(Authentication){
-        jwt("jwt"){
+    // 3. Install Authentication and pass the dependencies to it
+    install(Authentication) {
+        jwt("jwt") {
             verifier(jwtService.verifier)
             realm = "Note Server"
             validate {
@@ -33,7 +38,8 @@ fun Application.module() {
         }
     }
 
+    // 4. Pass dependencies to your other configuration functions
     configureSerialization()
-    configureSecurity()
-    configureRouting()
+    // configureSecurity() // You might need to update this function as well if it uses db or jwtService
+    configureRouting(db, jwtService)
 }

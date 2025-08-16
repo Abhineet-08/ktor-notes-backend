@@ -10,26 +10,24 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting() {
-    val hashFunction = { s: String -> hash(s) }
-    val jwtService = JwtService()
-    val db = UserRepo()
-    routing {
+// In your configureRouting file
 
+fun Application.configureRouting(
+    db: UserRepo, // Accept UserRepo as a parameter
+    jwtService: JwtService // Accept JwtService as a parameter
+) {
+    val hashFunction = { s: String -> hash(s) }
+    // The function no longer creates its own dependencies
+    // val jwtService = JwtService() // DELETE
+    // val db = UserRepo() // DELETE
+
+    routing {
         UserRoutes(db, jwtService, hashFunction)
         NoteRoutes(db, hashFunction)
 
         get("/") {
             call.respondText("Hello World!")
         }
-        get("/token") {
-            val email = call.request.queryParameters["email"]
-            val password = call.request.queryParameters["password"]
-            val userName = call.request.queryParameters["userName"]
-
-            val user = UserModel(email!!, hashFunction(password!!), userName!!)
-
-            call.respond(jwtService.generateToken(user))
-        }
+        // ... your other routes
     }
 }

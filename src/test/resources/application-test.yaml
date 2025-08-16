@@ -1,0 +1,4 @@
+# src/test/resources/application-test.yaml
+jwt:
+  issuer: test-server
+  secret: this-is-a-very-secure-secret-for-testing-purposes

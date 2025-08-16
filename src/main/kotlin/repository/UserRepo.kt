@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
 
-class UserRepo {
+open class UserRepo {
 
     suspend fun addUser(user: UserModel) {
         dbQuery {
