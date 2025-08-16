@@ -18,3 +18,6 @@ db:
   url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/notes_db}
   user: ${DB_USER:ktor_user}
   password: ${DB_PASSWORD:Kumar@1234}
+
+hash:
+  secret: ${HASH_SECRET:MySuperSecretHashKey}

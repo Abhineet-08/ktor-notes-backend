@@ -1,8 +1,6 @@
 package com.example
 
 import com.example.authentication.JwtService
-import com.example.authentication.hash
-import com.example.data.model.UserModel
 import com.example.repository.UserRepo
 import com.example.routes.NoteRoutes
 import com.example.routes.UserRoutes
@@ -14,9 +12,9 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting(
     db: UserRepo,
-    jwtService: JwtService
+    jwtService: JwtService,
+    hashFunction: (String) -> String
 ) {
-    val hashFunction = { s: String -> hash(s) }
 
     routing {
         // Temporarily disable these to find the conflict

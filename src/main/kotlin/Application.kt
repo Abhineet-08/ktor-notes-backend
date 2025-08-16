@@ -21,8 +21,13 @@ fun Application.module() {
 
     // 2. Create your dependencies using the main application config
     val db = UserRepo()
-    val jwtService = JwtService(environment.config) // Pass the application's config
-    val hashFunction = { s: String -> hash(s) }
+    val jwtService = JwtService(environment.config)
+    // Read the secret key from the config file
+    val hashSecret = environment.config.property("hash.secret").getString()
+
+    // Create a hash function that uses the secret
+    val hashFunction = { s: String -> hash(s, hashSecret) }
+
 
     // 3. Install Authentication and pass the dependencies to it
     install(Authentication) {
@@ -41,5 +46,5 @@ fun Application.module() {
     // 4. Pass dependencies to your other configuration functions
     configureSerialization()
     // configureSecurity() // You might need to update this function as well if it uses db or jwtService
-    configureRouting(db, jwtService)
+    configureRouting(db, jwtService , hashFunction)
 }
