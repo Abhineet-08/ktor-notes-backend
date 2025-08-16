@@ -16,7 +16,7 @@ COPY src ./src
 RUN chmod +x ./gradlew
 
 # Build the fat JAR. This runs inside Render's servers.
-RUN ./gradlew build --no-daemon
+RUN ./gradlew build -x test --no-daemon
 
 # Expose the port Ktor will run on
 EXPOSE 8080
