@@ -1,10 +1,14 @@
 ktor:
-    application:
-        modules:
-            - com.example.ApplicationKt.module
-    deployment:
-        port: 9696
+  deployment:
+    port: ${PORT} # Use the port Render provides
+
 jwt:
-  domain: "https://jwt-provider-domain/"
-  audience: "jwt-audience"
+  issuer: "https://your-app-name.onrender.com" # Use your actual Render URL
+  audience: "users"
   realm: "ktor sample app"
+  secret: ${JWT_SECRET} # <-- CRITICAL: Read secret from environment
+
+db:
+  url: ${DATABASE_URL} # <-- CRITICAL: Read database URL from environment
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
